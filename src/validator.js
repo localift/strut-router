@@ -1,9 +1,11 @@
 "use strict"
 
 const Ajv = require("ajv")
+const debug = require("debug")("strut-router:validator")
+
 const META_SCHEMA_ID = "http://json-schema.org/draft-04/schema"
 
-const ajv = Ajv({ meta: false })
+const ajv = Ajv({ meta: false, coerceTypes: true })
 
 // Monkey patch JSON Schema v4 draft for file support
 const metaSchema = require("ajv/lib/refs/json-schema-draft-04.json")
@@ -22,7 +24,7 @@ function compile(params) {
 
   for (const p of params) {
     const param = Object.assign({}, p)
-    
+
     schema.properties[param.name] = param
 
     if (param.required) {

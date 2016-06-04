@@ -4,7 +4,8 @@
   "description": "OpenAPI v2 router for Koa@2",
   "main": "lib/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "preinstall": "babel src -d lib -D"
   },
   "author": "Brendan Molloy <brendan@bbqsrc.net> (https://brendan.so/)",
   "license": "ISC",

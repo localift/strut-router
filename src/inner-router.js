@@ -72,29 +72,59 @@ class InnerRouter {
 
       const modelClass = this.models[modelData.type]
 
-      let query
-
-      debug(match)
-      debug(param)
+      let field
 
       if (param.in === "path") {
-        query = match.param[param.name]
+        field = match.param[param.name]
       } else if (param.in === "formData" || param.in === "body") {
-        query = ctx.request.fields[param.name]
+        field = ctx.request.fields[param.name]
       }
 
-      // Convert data to correct types
-      match.node.pathValidators[method](query)
-
-      debug(query)
-
-      const model = await modelClass.findById(query)
+      const model = await modelClass.findById(field)
 
       if (model == null) {
         ctx.throw(404)
       }
 
       ctx.models[modelData.name] = model
+    }
+  }
+
+  async coerce(match, ctx) {
+    debug('coerce')
+    const spec = match.node.spec
+
+    // Resolve models
+    ctx.models = {}
+
+    const method = ctx.method.toLowerCase()
+    const params = spec[method].parameters
+
+    if (!params) {
+      return
+    }
+
+    for (const param of params) {
+      debug(param)
+      let v = ctx.request.fields[param.name]
+      debug(v)
+
+      if (v == null) {
+        continue
+      }
+
+      switch (param.type) {
+        case "string":
+          switch (param.format) {
+            case "date":
+            case "date-time":
+              v = new Date(v)
+          }
+      }
+
+      debug(v)
+
+      ctx.request.fields[param.name] = v
     }
   }
 
@@ -161,7 +191,8 @@ class InnerRouter {
       try {
         await validator(ctx.request.fields)
       } catch (err) {
-        // The errors end up in validator either way.
+        debug(err.errors)
+        return ctx.throw(400)
       }
 
       if (validator.errors) {
@@ -175,8 +206,12 @@ class InnerRouter {
       // Assign models to ctx.models
       await this.getModels(match, ctx)
 
+      // Coerce data
+      this.coerce(match, ctx)
+
       // Run the controller
       debug("Running controller")
+      debug(controller)
       await controller(ctx)
     }
   }

@@ -30,6 +30,7 @@ class Router {
         this._api = await SwaggerParser.validate(this.schema)
       } catch (err) {
         this.app.emit("error", err)
+        throw err
       }
 
       await this.verify()
