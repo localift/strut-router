@@ -207,7 +207,7 @@ class InnerRouter {
       await this.getModels(match, ctx)
 
       // Coerce data
-      this.coerce(match, ctx)
+      await this.coerce(match, ctx)
 
       // Run the controller
       debug("Running controller")
