@@ -2,6 +2,7 @@
 
 const routington = require("routington")
 const debug = require("debug")("strut-router")
+const log = require("debug")("strut-router:log")
 const _ = require("lodash")
 
 const { convertPath, parseMethods } = require("./utils")
@@ -91,23 +92,22 @@ class InnerRouter {
   }
 
   async coerce(match, ctx) {
-    debug('coerce')
+    debug("Coerce")
     const spec = match.node.spec
-
-    // Resolve models
-    ctx.models = {}
 
     const method = ctx.method.toLowerCase()
     const params = spec[method].parameters
+
+    if (!ctx.request.fields) {
+      ctx.request.fields = {}
+    }
 
     if (!params) {
       return
     }
 
     for (const param of params) {
-      debug(param)
       let v = ctx.request.fields[param.name]
-      debug(v)
 
       if (v == null) {
         continue
@@ -121,8 +121,6 @@ class InnerRouter {
               v = new Date(v)
           }
       }
-
-      debug(v)
 
       ctx.request.fields[param.name] = v
     }
@@ -213,6 +211,8 @@ class InnerRouter {
       debug("Running controller")
       debug(controller)
       await controller(ctx)
+
+      log("ctx.body", ctx.body)
     }
   }
 }
