@@ -49,7 +49,7 @@ function compileParams(params) {
     return ajv.compile(body.schema)
   }
 
-  return compile(params)
+  return () => true
 }
 
 function compilePath(params) {
