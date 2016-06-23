@@ -119,6 +119,13 @@ class InnerRouter {
             case "date":
             case "date-time":
               v = new Date(v)
+              break
+            case "json":
+              v = JSON.parse(v)
+              if (param["x-strut-schema"]) {
+                Object.assign(ctx.request.fields, v)
+                continue
+              }
           }
       }
 
