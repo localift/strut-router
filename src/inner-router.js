@@ -175,7 +175,6 @@ class InnerRouter {
         return await next()
       }
 
-      debug("Got match", match)
       const controller = match.node.methods[ctx.method]
 
       if (!controller) {
