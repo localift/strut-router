@@ -8,6 +8,13 @@ const _ = require("lodash")
 const { convertPath, parseMethods } = require("./utils")
 const { compileParams, compilePath } = require("./validator")
 
+const AUTH_FAILED = "auth-failed"
+const NO_PERMISSION = "no-permission"
+
+function makeError(code) {
+  return { code }
+}
+
 class InnerRouter {
   constructor(api, operations, models) {
     this.api = api
@@ -92,7 +99,6 @@ class InnerRouter {
   }
 
   async coerce(match, ctx) {
-    debug("Coerce")
     const spec = match.node.spec
 
     const method = ctx.method.toLowerCase()
@@ -143,18 +149,43 @@ class InnerRouter {
       for (const sec of security) {
         const name = Object.keys(sec)[0]
         const def = this.api.securityDefinitions[name]
+        let res
 
         switch (def.type) {
           case "apiKey": {
             if (def.in === "header") {
-              return await this.secHandlers[def.name](ctx, ctx.header[def.name.toLowerCase()])
+              res = await this.secHandlers[def.name](ctx, ctx.header[def.name.toLowerCase()])
             } else {
-              return await this.secHandlers[def.name](ctx, ctx.query[def.name])
+              res = await this.secHandlers[def.name](ctx, ctx.query[def.name])
             }
+            break
           }
           default:
-            ctx.throw(400, `unsupported securityDefinition type: ${def.type}`)
+            ctx.throw(500, `unsupported securityDefinition type: ${def.type}`)
             return false
+        }
+
+        if (!res) {
+          return makeError(AUTH_FAILED)
+        }
+      }
+
+      if (this.rbac) {
+        debug("rbac api", spec[ctx.method.toLowerCase()]["x-strut-rbac"], this.api["x-strut-rbac"])
+        const { permissions } = spec[ctx.method.toLowerCase()]["x-strut-rbac"] || this.api["x-strut-rbac"]
+
+        if (!permissions) {
+          return true
+        }
+
+        debug("rbac", permissions)
+
+        const res = await this.rbac.check(ctx, permissions)
+
+        debug("rbac result", res)
+
+        if (!res) {
+          return makeError(NO_PERMISSION)
         }
       }
 
@@ -182,12 +213,12 @@ class InnerRouter {
       }
 
       // Test if we can even access endpoint
-      if (!(await this.authenticate(match, ctx))) {
-        debug("Auth failed")
-        return ctx.throw(401)
-      }
+      const res = await this.authenticate(match, ctx)
 
-      debug("Running validator")
+      if (res !== true) {
+        debug("Auth failed")
+        return ctx.throw(401, res)
+      }
 
       // Validate input for legitimacy
       const validator = match.node.bodyValidators[ctx.method.toLowerCase()]
@@ -214,7 +245,6 @@ class InnerRouter {
       await this.coerce(match, ctx)
 
       // Run the controller
-      debug("Running controller")
       debug(controller)
       await controller(ctx)
 

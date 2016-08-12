@@ -1,6 +1,7 @@
 "use strict"
 
 const SwaggerParser = require("swagger-parser")
+const RBAC = require("rbac-a")
 const debug = require("debug")("strut-router")
 
 const InnerRouter = require("./inner-router")
@@ -22,6 +23,10 @@ class Router {
 
   setSecurityHandler(name, handler) {
     this.secHandlers[name] = handler
+  }
+
+  setRbacProvider(provider) {
+    this.rbacProvider = provider
   }
 
   async api() {
@@ -77,6 +82,9 @@ class Router {
           const router = new InnerRouter(api, this.operations, this.models)
 
           router.secHandlers = this.secHandlers
+          router.rbac = new RBAC({
+            provider: new (this.rbacProvider)({ api })
+          })
 
           m = router.middleware()
         } catch (err) {
