@@ -1,6 +1,6 @@
 {
   "name": "strut-router",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "OpenAPI v2 router for Koa@2",
   "main": "lib/index.js",
   "scripts": {

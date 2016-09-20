@@ -50,11 +50,16 @@ class Router {
 
     for (const rawPath in api.paths) {
       for (const method in api.paths[rawPath]) {
+        if (method.startsWith("x-") || method === "parameters") {
+          continue
+        }
+
         const operationId = api.paths[rawPath][method].operationId
 
         if (!operationId) {
           console.error(`- No operationId found for ${method.toUpperCase()} ${rawPath}`)
           hasFailure = true
+          continue
         }
 
         if (!this.operations[operationId]) {
