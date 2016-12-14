@@ -8,11 +8,11 @@ const _ = require("lodash")
 const { convertPath, parseMethods } = require("./utils")
 const { compileParams, compilePath } = require("./validator")
 
-const AUTH_FAILED = "auth-failed"
-const NO_PERMISSION = "no-permission"
+const AUTH_FAILED = "AUTH_FAILED"
+const NO_PERMISSION = "NO_PERMISSION"
 
 function makeError(code) {
-  return { code }
+  return { strut: true, code }
 }
 
 class InnerRouter {

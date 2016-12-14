@@ -7,20 +7,22 @@ const debug = require("debug")("strut-router")
 const InnerRouter = require("./inner-router")
 
 class Router {
-  constructor(app, schemaPath, operations, models) {
+  constructor(app, schemaPath, operations, options) {
     this.app = app
     this.schema = schemaPath
     this.operations = operations || {}
-    this.models = models || {}
-    this.secHandlers = {}
+    this.models = options.models || {}
+    this.secHandlers = options.security || {}
+    this.rbacProvider = options.rbac
   }
 
-  add(operations) {
+  addOperations(operations) {
     for (const c in operations) {
       this.operations[c] = operations[c]
     }
   }
 
+  /*
   setSecurityHandler(name, handler) {
     this.secHandlers[name] = handler
   }
@@ -28,6 +30,7 @@ class Router {
   setRbacProvider(provider) {
     this.rbacProvider = provider
   }
+  */
 
   async api() {
     if (!this._api) {
@@ -82,14 +85,19 @@ class Router {
 
     return async (ctx, next) => {
       if (!m) {
+        await this.verify()
+
         try {
           const api = await this.api()
           const router = new InnerRouter(api, this.operations, this.models)
 
           router.secHandlers = this.secHandlers
-          router.rbac = new RBAC({
-            provider: new (this.rbacProvider)({ api })
-          })
+
+          if (this.rbacProvider) {
+            router.rbac = new RBAC({
+              provider: new (this.rbacProvider)({ api })
+            })
+          }
 
           m = router.middleware()
         } catch (err) {
