@@ -171,14 +171,11 @@ class InnerRouter {
       }
 
       if (this.rbac) {
-        debug("rbac api", spec[ctx.method.toLowerCase()]["x-strut-rbac"], this.api["x-strut-rbac"])
         const { permissions } = spec[ctx.method.toLowerCase()]["x-strut-rbac"] || this.api["x-strut-rbac"]
 
         if (!permissions) {
           return true
         }
-
-        debug("rbac", permissions)
 
         const res = await this.rbac.check(ctx, permissions)
 
