@@ -223,13 +223,18 @@ class InnerRouter {
       try {
         await validator(ctx.request.fields)
       } catch (err) {
-        debug(err.errors)
-        return ctx.throw(400)
+        // Errors caught in next block
       }
 
       if (validator.errors) {
         debug(validator.errors)
-        return ctx.throw(400)
+        ctx.status = 400
+
+        if (process.env.NODE_ENV !== "production") {
+          ctx.body = validator.errors
+        }
+
+        return
       }
 
       // Fun configuration times

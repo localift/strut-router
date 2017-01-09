@@ -1,7 +1,7 @@
 {
   "name": "strut-router",
-  "version": "0.3.0",
-  "description": "OpenAPI v2 router for Koa@2",
+  "version": "0.4.0",
+  "description": "OpenAPI v2 router for Koa v2",
   "main": "lib/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -27,7 +27,7 @@
     "mocha": "^2.5.3"
   },
   "dependencies": {
-    "ajv": "^4.1.1",
+    "ajv": "^4.10.3",
     "lodash": "^4.17.2",
     "rbac-a": "^0.2.5",
     "routington": "^1.0.3",

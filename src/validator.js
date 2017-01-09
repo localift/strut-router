@@ -8,11 +8,8 @@ const META_SCHEMA_ID = "http://json-schema.org/draft-04/schema"
 const ajv = Ajv({
   meta: false,
   coerceTypes: true,
-  unknownFormats: [
-    "password",
-    "double",
-    "json"
-  ]
+  unknownFormats: "ignore",
+  allowUnknown: true
 })
 
 // Monkey patch JSON Schema v4 draft for file support
