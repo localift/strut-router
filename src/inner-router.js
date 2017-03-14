@@ -250,6 +250,10 @@ class InnerRouter {
       debug(controller)
       await controller(ctx)
 
+      if (ctx.body == null) {
+        ctx.status = 204
+      }
+
       log("ctx.body", ctx.body)
     }
   }
