@@ -146,17 +146,22 @@ class InnerRouter {
 
       debug("Security", security)
 
+      if (security.length === 0) {
+        return true
+      }
+
+      let res
+
       for (const sec of security) {
         const name = Object.keys(sec)[0]
         const def = this.api.securityDefinitions[name]
-        let res
 
         switch (def.type) {
           case "apiKey": {
             if (def.in === "header") {
-              res = await this.secHandlers[def.name](ctx, ctx.header[def.name.toLowerCase()])
+              res = await this.secHandlers[name](ctx, ctx.header[def.name.toLowerCase()])
             } else {
-              res = await this.secHandlers[def.name](ctx, ctx.query[def.name])
+              res = await this.secHandlers[name](ctx, ctx.query[def.name])
             }
             break
           }
@@ -165,9 +170,13 @@ class InnerRouter {
             return false
         }
 
-        if (!res) {
-          return makeError(AUTH_FAILED)
+        if (res) {
+          break
         }
+      }
+
+      if (!res) {
+        return makeError(AUTH_FAILED)
       }
 
       if (this.rbac) {
