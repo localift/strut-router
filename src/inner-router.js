@@ -259,7 +259,7 @@ class InnerRouter {
       debug(controller)
       await controller(ctx)
 
-      if (ctx.body == null) {
+      if (!ctx.response._explicitStatus && ctx.body == null) {
         ctx.status = 204
       }
 
